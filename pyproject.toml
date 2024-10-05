@@ -12,6 +12,8 @@ numpy = "^2.1.1"
 pymupdf = "^1.24.11"
 pymupdf4llm = "^0.0.17"
 python-dotenv = "^1.0.1"
+graphviz = "^0.20.1"
+pygraphviz = "^1.7"
 
 
 [build-system]

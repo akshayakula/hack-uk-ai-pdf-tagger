@@ -1,14 +1,39 @@
+# utils.py
 import requests
 import base64
 import os
 from dotenv import load_dotenv
+import logging
+import json
+import re
 
-# Load API key from .env file
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Load environment variables from .env file
 load_dotenv()
 
-def query_pixtral(text, encoded_images=None):
+def query_pixtral(prompt, encoded_images=None):
+    """
+    Sends a prompt to the Mistral AI model and returns the response.
+
+    Args:
+        prompt (str): The prompt to send to the AI model.
+        encoded_images (list, optional): List of base64-encoded images.
+
+    Returns:
+        dict or str: Parsed JSON response from the AI or an error message.
+    """
+    logging.info("Preparing to send request to Mistral API.")
+
     # API endpoint
     url = "https://api.mistral.ai/v1/chat/completions"
+
+    # Retrieve the API key from environment variables
+    api_key = os.getenv("MISTRAL_API_KEY")
+    if not api_key:
+        logging.error("MISTRAL_API_KEY is not set.")
+        raise ValueError("MISTRAL_API_KEY is not set in the environment variables.")
 
     # Prepare the payload
     payload = {
@@ -17,7 +42,7 @@ def query_pixtral(text, encoded_images=None):
             {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": text}
+                    {"type": "text", "text": prompt}
                 ]
             }
         ]
@@ -30,25 +55,50 @@ def query_pixtral(text, encoded_images=None):
                 {"type": "image_url", "image_url": f"data:image/jpeg;base64,{image}"}
             )
 
-    # Get the API key from environment variable
-    api_key = os.getenv("MISTRAL_API_KEY")
-
-    # Set up headers
+    # Set up headers with the API key
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}"
     }
 
-    # Make the API call
-    response = requests.post(url, json=payload, headers=headers)
+    try:
+        response = requests.post(url, json=payload, headers=headers)
+        response.raise_for_status()  # Raises HTTPError for bad responses
+        logging.info("Successfully received response from Mistral API.")
+        ai_response = response.json()['choices'][0]['message']['content']
 
-    # Check if the request was successful
-    if response.status_code == 200:
-        return response.json()['choices'][0]['message']['content']
-    else:
-        return f"Error: {response.status_code}, {response.text}"
+        # Extract JSON from the AI response using code fences
+        json_match = re.search(r'```json\s*(\{.*\})\s*```', ai_response, re.DOTALL)
+        if json_match:
+            json_str = json_match.group(1)
+            try:
+                tag_tree = json.loads(json_str)
+                logging.info("Successfully parsed AI response as JSON.")
+                return tag_tree
+            except json.JSONDecodeError as e:
+                logging.error("Failed to parse extracted JSON.")
+                return {
+                    "error": "Failed to parse extracted JSON.",
+                    "details": str(e),
+                    "raw_response": ai_response
+                }
+        else:
+            # If no JSON code fence is found, attempt to parse entire response
+            try:
+                tag_tree = json.loads(ai_response)
+                logging.info("Successfully parsed AI response as JSON.")
+                return tag_tree
+            except json.JSONDecodeError as e:
+                logging.error("Failed to parse AI response as JSON.")
+                return {
+                    "error": "Failed to parse AI response as JSON.",
+                    "details": str(e),
+                    "raw_response": ai_response
+                }
 
-# Example usage:
-#result = query_pixtral("Describe this image", "/path/to/your/image.jpg")
-#   e.g. result = query_pixtral("Describe this image", "C:\\Users\\jackh\\OneDrive\\Pictures\\shabu_on_a_beach.jpg")
-#print(result)
+    except requests.exceptions.HTTPError as http_err:
+        logging.error(f"HTTP error occurred: {http_err}")
+        return {"error": f"HTTP error: {http_err}"}
+    except Exception as err:
+        logging.error(f"An error occurred: {err}")
+        return {"error": f"Error: {err}"}
