@@ -9,7 +9,7 @@ import pymupdf4llm
 def process_pdf(pdf_file):
     # This function will be called when the button is clicked
     doc = fitz.open(stream=pdf_file, filetype="pdf")
-    md_text = pymupdf4llm.to_markdown(pdf_file.read())
+    md_text = pymupdf4llm.to_markdown(doc)
     st.write(md_text)
     num_pages = len(doc)
     st.write(f"The PDF has {num_pages} pages.")
@@ -25,13 +25,13 @@ def process_pdf(pdf_file):
         })
 
     # Display the processed information
-    st.write("Processed PDF Content:")
-    for page in all_processed_pages:
-        st.subheader(f"Page {page['page_number']}")
-        for para in page['paragraphs']:
-            st.write(f"Paragraph {para['paragraph_number']} (Words: {para['word_count']}):")
-            st.write(para['content'])
-            st.write("---")
+    # st.write("Processed PDF Content:")
+    # for page in all_processed_pages:
+    #     st.subheader(f"Page {page['page_number']}")
+    #     for para in page['paragraphs']:
+    #         st.write(f"Paragraph {para['paragraph_number']} (Words: {para['word_count']}):")
+    #         st.write(para['content'])
+    #         st.write("---")
 
     # Extract images using PyMuPDF
     extract_images(doc)
