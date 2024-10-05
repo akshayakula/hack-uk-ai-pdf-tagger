@@ -2,7 +2,82 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import io
-from PyPDF2 import PdfReader
+import fitz  # PyMuPDF
+import utils
+import pymupdf4llm
+
+def process_pdf(pdf_file):
+    # This function will be called when the button is clicked
+    doc = fitz.open(stream=pdf_file, filetype="pdf")
+    md_text = pymupdf4llm.to_markdown(pdf_file.read())
+    st.write(md_text)
+    num_pages = len(doc)
+    st.write(f"The PDF has {num_pages} pages.")
+
+    # Process each page of the PDF
+    all_processed_pages = []
+    for i in range(num_pages):
+        page = doc[i]
+        processed_page = process_page(page)
+        all_processed_pages.append({
+            'page_number': i + 1,
+            'paragraphs': processed_page
+        })
+
+    # Display the processed information
+    st.write("Processed PDF Content:")
+    for page in all_processed_pages:
+        st.subheader(f"Page {page['page_number']}")
+        for para in page['paragraphs']:
+            st.write(f"Paragraph {para['paragraph_number']} (Words: {para['word_count']}):")
+            st.write(para['content'])
+            st.write("---")
+
+    # Extract images using PyMuPDF
+    extract_images(doc)
+
+    # Close the document
+    doc.close()
+
+# Function to process a single page
+def process_page(page):
+    # Extract text from the page
+    text = page.get_text()
+    
+    # Break down the text into paragraphs
+    paragraphs = text.split('\n\n')
+    
+    # Process each paragraph
+    processed_paragraphs = []
+    for i, paragraph in enumerate(paragraphs):
+        # Remove leading/trailing whitespace
+        paragraph = paragraph.strip()
+        
+        # Skip empty paragraphs
+        if not paragraph:
+            continue
+        
+        processed_paragraphs.append({
+            'paragraph_number': i + 1,
+            'content': paragraph,
+            'word_count': len(paragraph.split())
+        })
+    
+    return processed_paragraphs
+
+def extract_images(doc):
+    # Open the PDF file with PyMuPDF
+    for page_number in range(len(doc)):
+        page = doc.load_page(page_number)
+        image_list = page.get_images(full=True)
+        st.write(f"Page {page_number + 1} has {len(image_list)} images.")
+        
+        for img_index, img in enumerate(image_list):
+            xref = img[0]
+            base_image = doc.extract_image(xref)
+            image_bytes = base_image["image"]
+            image_ext = base_image["ext"]
+            st.image(image_bytes, caption=f"Image {img_index + 1} on Page {page_number + 1}", use_column_width=True)
 
 st.title('PDFstral')
 
@@ -19,11 +94,3 @@ if uploaded_file is not None:
         process_pdf(pdf_file)
 else:
     st.write("Please upload a PDF file.")
-
-def process_pdf(pdf_file):
-    # This function will be called when the button is clicked
-    # You can add your PDF processing logic here
-    reader = PdfReader(pdf_file)
-    num_pages = len(reader.pages)
-    st.write(f"The PDF has {num_pages} pages.")
-    # Add more processing as needed
