@@ -2,21 +2,20 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import io
-from PyPDF2 import PdfReader
 import fitz  # PyMuPDF
 import utils
 
-
 def process_pdf(pdf_file):
     # This function will be called when the button is clicked
-    reader = PdfReader(pdf_file)
-    num_pages = len(reader.pages)
+    doc = fitz.open(stream=pdf_file, filetype="pdf")
+    num_pages = len(doc)
     st.write(f"The PDF has {num_pages} pages.")
 
     # Process each page of the PDF
     all_processed_pages = []
-    for i, page in enumerate(reader.pages):
-        processed_page = process_page(page, reader)
+    for i in range(num_pages):
+        page = doc[i]
+        processed_page = process_page(page)
         all_processed_pages.append({
             'page_number': i + 1,
             'paragraphs': processed_page
@@ -32,12 +31,15 @@ def process_pdf(pdf_file):
             st.write("---")
 
     # Extract images using PyMuPDF
-    extract_images(pdf_file)
+    extract_images(doc)
+
+    # Close the document
+    doc.close()
 
 # Function to process a single page
-def process_page(page, reader):
+def process_page(page):
     # Extract text from the page
-    text = page.extract_text()
+    text = page.get_text()
     
     # Break down the text into paragraphs
     paragraphs = text.split('\n\n')
@@ -60,9 +62,8 @@ def process_page(page, reader):
     
     return processed_paragraphs
 
-def extract_images(pdf_file):
+def extract_images(doc):
     # Open the PDF file with PyMuPDF
-    doc = fitz.open(stream=pdf_file, filetype="pdf")
     for page_number in range(len(doc)):
         page = doc.load_page(page_number)
         image_list = page.get_images(full=True)

@@ -42,4 +42,4 @@ def query_pixtral(text, image_path):
 # result = query_pixtral("Describe this image", "path/to/your/image.jpg")
 # print(result)
 
-print(query_pixtral("Describe this image", "mistral_ai.max-2500x2500.jpg"))
+# print(query_pixtral("Describe this image", "mistral_ai.max-2500x2500.jpg"))
