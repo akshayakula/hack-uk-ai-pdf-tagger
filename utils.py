@@ -1,13 +1,9 @@
 import requests
 import base64
 
-def query_pixtral(text, image_path):
+def query_pixtral(text, encoded_images=None):
     # API endpoint
     url = "https://api.mistral.ai/v1/chat/completions"
-
-    # Encode the image
-    with open(image_path, "rb") as image_file:
-        encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
 
     # Prepare the payload
     payload = {
@@ -16,12 +12,18 @@ def query_pixtral(text, image_path):
             {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": text},
-                    {"type": "image_url", "image_url": f"data:image/jpeg;base64,{encoded_image}"}
+                    {"type": "text", "text": text}
                 ]
             }
         ]
     }
+
+    # Add images to content if encoded_images is provided
+    if encoded_images:
+        for image in encoded_images:
+            payload["messages"][0]["content"].append(
+                {"type": "image_url", "image_url": f"data:image/jpeg;base64,{image}"}
+            )
 
     # Set up headers (you'll need to replace YOUR_API_KEY with your actual Mistral API key)
     headers = {
