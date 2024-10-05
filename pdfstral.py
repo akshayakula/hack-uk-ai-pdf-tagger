@@ -4,10 +4,13 @@ import numpy as np
 import io
 import fitz  # PyMuPDF
 import utils
+import pymupdf4llm
 
 def process_pdf(pdf_file):
     # This function will be called when the button is clicked
     doc = fitz.open(stream=pdf_file, filetype="pdf")
+    md_text = pymupdf4llm.to_markdown(pdf_file.read())
+    st.write(md_text)
     num_pages = len(doc)
     st.write(f"The PDF has {num_pages} pages.")
 
