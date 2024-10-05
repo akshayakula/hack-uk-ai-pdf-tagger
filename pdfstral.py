@@ -26,7 +26,6 @@ def process_pdf(pdf_file):
     2. Structures data for AI processing.
     3. Sends data to Mistral API to generate tag tree.
     4. Visualizes the tag tree.
-    5. Extracts and describes images.
     """
     # Open the PDF document
     doc = fitz.open(stream=pdf_file, filetype="pdf")
@@ -94,11 +93,27 @@ def process_pdf(pdf_file):
     except Exception as e:
         st.error(f"Failed to visualize tag tree: {e}")
 
-    # Extract images using PyMuPDF
-    extract_images(doc)
+    # Provide Download Option for Tag Tree
+    tag_tree_json = json.dumps(tag_tree, indent=2)
+    st.download_button(
+        label="Download Tag Tree JSON",
+        data=tag_tree_json,
+        file_name="tag_tree.json",
+        mime="application/json"
+    )
+
+    # (Optional) Simulate Tagging on PDF
+    st.subheader("Tag Tree Overlay (Visual Representation)")
+    try:
+        # Generate SVG or other overlay if feasible
+        # For simplicity, display the visualization again or in a different format
+        st.graphviz_chart(dot.source)
+    except Exception as e:
+        st.error(f"Failed to create overlay: {e}")
 
     # Close the document
     doc.close()
+
 
 def process_page(page):
     """
