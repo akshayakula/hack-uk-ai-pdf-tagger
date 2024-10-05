@@ -47,5 +47,6 @@ def query_pixtral(text, image_path):
         return f"Error: {response.status_code}, {response.text}"
 
 # Example usage:
-# result = query_pixtral("Describe this image", "path/to/your/image.jpg")
-# print(result)
+#result = query_pixtral("Describe this image", "/path/to/your/image.jpg")
+#   e.g. result = query_pixtral("Describe this image", "C:\\Users\\jackh\\OneDrive\\Pictures\\shabu_on_a_beach.jpg")
+#print(result)

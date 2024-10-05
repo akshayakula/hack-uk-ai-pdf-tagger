@@ -25,6 +25,10 @@ Once you have this right, and installed poetry into the active environment with 
 poetry install
 ```
 
+### Environment Config
+
+Add a .dotenv-file with a `MISTRAL_API_KEY=` entry to the repo directory.
+
 ### Run Command
 
 ```
