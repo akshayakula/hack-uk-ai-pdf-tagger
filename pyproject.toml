@@ -1,29 +1,17 @@
-[project]
+[tool.poetry]
 name = "hack-uk-ai-pdf-tagger"
 version = "0.1.0"
-description = "Add your description here"
-authors = [
-    { name = "\"Akshay Akula\"", email = "akulaakshay30@gmail.com" }
-]
-dependencies = [
-    "streamlit>=1.39.0",
-    "pandas>=2.2.3",
-    "numpy>=2.1.1",
-    "pypdf2>=3.0.1",
-]
+description = ""
+authors = ["\"Akshay Akula\" <akulaakshay30@gmail.com>"]
 readme = "README.md"
-requires-python = ">= 3.8"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+streamlit = "^1.39.0"
+numpy = "^2.1.1"
+PyPDF2 = "^3.0.1"
+
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.rye]
-managed = true
-dev-dependencies = []
-
-[tool.hatch.metadata]
-allow-direct-references = true
-
-[tool.hatch.build.targets.wheel]
-packages = ["src/hack_uk_ai_pdf_tagger"]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
