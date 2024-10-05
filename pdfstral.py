@@ -2,8 +2,10 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import io
-import fitz  # PyMuPDF
 import utils
+import fitz  # PyMuPDF
+import base64
+from utils import query_pixtral
 import pymupdf4llm
 
 def process_pdf(pdf_file):
@@ -11,7 +13,9 @@ def process_pdf(pdf_file):
     doc = fitz.open(stream=pdf_file, filetype="pdf")
     md_text = pymupdf4llm.to_markdown(doc)
     st.write(md_text)
+    # st.write(query_pixtral(f"Tell me sbout this PDF content that is in markdown format specificlaly the images if your able to see them: {md_text}"))
     num_pages = len(doc)
+    print(md_text)
     st.write(f"The PDF has {num_pages} pages.")
 
     # Process each page of the PDF
@@ -72,12 +76,19 @@ def extract_images(doc):
         image_list = page.get_images(full=True)
         st.write(f"Page {page_number + 1} has {len(image_list)} images.")
         
+        encoded_images = []
         for img_index, img in enumerate(image_list):
             xref = img[0]
             base_image = doc.extract_image(xref)
             image_bytes = base_image["image"]
             image_ext = base_image["ext"]
+            
+            # Convert image bytes to base64 encoded string
+            base64_encoded = base64.b64encode(image_bytes).decode('utf-8')
+            encoded_images.append(base64_encoded)
             st.image(image_bytes, caption=f"Image {img_index + 1} on Page {page_number + 1}", use_column_width=True)
+        
+        st.write(query_pixtral(f"Describe these images:", encoded_images))
 
 st.title('PDFstral')
 
