@@ -94,3 +94,14 @@ if uploaded_file is not None:
         process_pdf(pdf_file)
 else:
     st.write("Please upload a PDF file.")
+
+# Add a download button for the PDF
+with open("pdf/Heading-Quote-and-List-not-perfect.pdf", "rb") as pdf_file:
+    pdf_bytes = pdf_file.read()
+
+st.download_button(
+    label="Download Sample PDF",
+    data=pdf_bytes,
+    file_name="Heading-Quote-and-List-not-perfect.pdf",
+    mime="application/pdf"
+)
