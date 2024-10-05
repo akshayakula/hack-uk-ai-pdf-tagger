@@ -1,5 +1,10 @@
 import requests
 import base64
+import os
+from dotenv import load_dotenv
+
+# Load API key from .env file
+load_dotenv()
 
 def query_pixtral(text, image_path):
     # API endpoint
@@ -23,10 +28,13 @@ def query_pixtral(text, image_path):
         ]
     }
 
-    # Set up headers (you'll need to replace YOUR_API_KEY with your actual Mistral API key)
+    # Get the API key from environment variable
+    api_key = os.getenv("MISTRAL_API_KEY")
+
+    # Set up headers
     headers = {
         "Content-Type": "application/json",
-        "Authorization": "Bearer pqmKVrIjJjkKQMhvRslPapP7QzNV2A1I"
+        "Authorization": f"Bearer {api_key}"
     }
 
     # Make the API call
@@ -41,5 +49,3 @@ def query_pixtral(text, image_path):
 # Example usage:
 # result = query_pixtral("Describe this image", "path/to/your/image.jpg")
 # print(result)
-
-# print(query_pixtral("Describe this image", "mistral_ai.max-2500x2500.jpg"))
