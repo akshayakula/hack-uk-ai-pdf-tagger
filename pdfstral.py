@@ -3,7 +3,8 @@ import pandas as pd
 import numpy as np
 import io
 from PyPDF2 import PdfReader
-
+import fitz  # PyMuPDF
+import utils
 
 
 def process_pdf(pdf_file):
@@ -29,7 +30,10 @@ def process_pdf(pdf_file):
             st.write(f"Paragraph {para['paragraph_number']} (Words: {para['word_count']}):")
             st.write(para['content'])
             st.write("---")
-    
+
+    # Extract images using PyMuPDF
+    extract_images(pdf_file)
+
 # Function to process a single page
 def process_page(page, reader):
     # Extract text from the page
@@ -48,11 +52,6 @@ def process_page(page, reader):
         if not paragraph:
             continue
         
-        # You can add more processing steps here, such as:
-        # - Extracting key information
-        # - Applying NLP techniques
-        # - Categorizing content
-        
         processed_paragraphs.append({
             'paragraph_number': i + 1,
             'content': paragraph,
@@ -61,23 +60,21 @@ def process_page(page, reader):
     
     return processed_paragraphs
 
-# # Process each page of the PDF
-# all_processed_pages = []
-# for i, page in enumerate(reader.pages):
-#     processed_page = process_page(page)
-#     all_processed_pages.append({
-#         'page_number': i + 1,
-#         'paragraphs': processed_page
-#     })
+def extract_images(pdf_file):
+    # Open the PDF file with PyMuPDF
+    doc = fitz.open(stream=pdf_file, filetype="pdf")
+    for page_number in range(len(doc)):
+        page = doc.load_page(page_number)
+        image_list = page.get_images(full=True)
+        st.write(f"Page {page_number + 1} has {len(image_list)} images.")
+        
+        for img_index, img in enumerate(image_list):
+            xref = img[0]
+            base_image = doc.extract_image(xref)
+            image_bytes = base_image["image"]
+            image_ext = base_image["ext"]
+            st.image(image_bytes, caption=f"Image {img_index + 1} on Page {page_number + 1}", use_column_width=True)
 
-# # Display the processed information
-# st.write("Processed PDF Content:")
-# for page in all_processed_pages:
-#     st.subheader(f"Page {page['page_number']}")
-#     for para in page['paragraphs']:
-#         st.write(f"Paragraph {para['paragraph_number']} (Words: {para['word_count']}):")
-#         st.write(para['content'])
-#         st.write("---")
 st.title('PDFstral')
 
 # File uploader

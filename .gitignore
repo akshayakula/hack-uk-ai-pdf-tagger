@@ -5,6 +5,14 @@ build/
 dist/
 wheels/
 *.egg-info
+# JPEG files
+*.jpg
+*.jpeg
+*.jpe
+*.jif
+*.jfif
+*.jfi
+
 
 # venv
 .venv
