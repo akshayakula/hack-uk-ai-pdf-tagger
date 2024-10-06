@@ -6,6 +6,7 @@ import pymupdf4llm
 import pikepdf
 from gtts import gTTS
 from utils import query_pixtral, traverse_structure_ascii, extract_code_between_triple_backticks
+from markdownpdf import MarkdownPdf, Section
 
 def visualize_pdf_structure_ascii(pdf_stream):
     """
@@ -57,8 +58,30 @@ def process_pdf(pdf_file):
     
     # Convert PDF content to markdown (optional)
     md_text = pymupdf4llm.to_markdown(doc)
-    st.write(md_text)
-    
+    # st.write(md_text)
+    # Create a Section object with the markdown text
+    section = Section(text=md_text)
+
+    # Create a MarkdownPdf object
+    pdf_converter = MarkdownPdf()
+
+    # Add the section to the PDF converter
+    pdf_converter.add_section(section)
+
+    # Save the PDF to a file
+    pdf_converter.save("output.pdf")
+
+    # Add a sample PDF download button
+    with open("output.pdf", "rb") as pdf_new:
+        pdf_data = pdf_new.read()
+
+    st.download_button(
+        label="Download Accessible PDF",
+        data=pdf_data,
+        file_name="output.pdf",
+        mime="application/pdf"
+    )
+
     # Convert the PDF to bytes to pass to PikePDF
     pdf_bytes = pdf_file.getvalue()
     
