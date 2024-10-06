@@ -174,3 +174,19 @@ if uploaded_file is not None:
         st.caption("with Tag-Tree Information and Image Annotations")
 else:
     st.write("Please upload a PDF file.")
+
+# Footer
+st.markdown(
+    """
+    <h4>Mistral AI <> a16z London Hackathon</h4>
+    """,
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    """
+    [View the README on GitHub](https://github.com/akshayakula/hack-uk-ai-pdf-tagger) for more info about this project.
+    """
+)
+
+st.image("mistral_logo.png", caption="Powered by Mistral", width=200)
