@@ -92,6 +92,10 @@ def process_pdf(pdf_file):
         st.audio(audio, format='audio/mp3')
         st.download_button(label="Download Full Document Audio", data=audio, file_name=full_audio_file, mime='audio/mp3')
 
+        # Combine all text on the page
+        page_text = "\n\n".join([p['content'] for p in processed_page])
+        all_text += page_text + "\n\n"  # Add the page text to the full document text
+
     # Extract images using PyMuPDF and include descriptions
     image_descriptions = extract_images(doc)
 
@@ -125,6 +129,18 @@ def process_pdf(pdf_file):
     if image_descriptions:
         md_text += "\n\n## Image Descriptions\n"
         md_text += image_descriptions
+
+        # also add to text for audio audio
+        all_text += "\n\nImage Descriptions\n"
+        all_text += image_descriptions
+
+    # Generate audio for the entire document
+    full_audio_file = generate_audio(all_text, "full_document")
+
+    # Provide a button to play and download the full document audio
+    with open(full_audio_file, "rb") as audio:
+        st.audio(audio, format='audio/mp3')
+        st.download_button(label="Download Full Document Audio", data=audio, file_name=full_audio_file, mime='audio/mp3')
 
     # Return the full markdown text
     return md_text
