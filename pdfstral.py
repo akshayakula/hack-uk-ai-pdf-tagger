@@ -162,12 +162,15 @@ if uploaded_file is not None:
         # Convert markdown text to bytes for download
         markdown_bytes = markdown_text.encode('utf-8')
         
-        # Add a download button for the markdown file
+        # Add a download button with a simple label
         st.download_button(
-            label="Download Markdown with Images",
+            label="Download Markdown",
             data=markdown_bytes,
             file_name="processed_pdf_with_images.md",
             mime="text/markdown"
         )
+
+        # Add a label below the button
+        st.caption("with Tag-Tree Information and Image Annotations")
 else:
     st.write("Please upload a PDF file.")
