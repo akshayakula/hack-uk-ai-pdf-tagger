@@ -1,11 +1,10 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
 import io
 import fitz  # PyMuPDF
 import base64
 import pymupdf4llm
 import pikepdf
+from gtts import gTTS
 from utils import query_pixtral, traverse_structure_ascii, extract_code_between_triple_backticks
 
 def visualize_pdf_structure_ascii(pdf_stream):
@@ -39,6 +38,18 @@ def visualize_pdf_structure_ascii(pdf_stream):
     except Exception as e:
         return f"Error processing PDF: {str(e)}"
 
+def generate_audio(text, filename="output"):
+    """
+    Convert the concatenated text to speech and save it as a single MP3 file.
+    """
+    # Convert the text to speech
+    tts = gTTS(text)
+    
+    # Save the audio file as MP3
+    audio_file = f"{filename}_speech.mp3"
+    tts.save(audio_file)
+
+    return audio_file
 
 def process_pdf(pdf_file):
     # Open the PDF using PyMuPDF
@@ -60,6 +71,9 @@ def process_pdf(pdf_file):
     num_pages = len(doc)
     st.write(f"The PDF has {num_pages} pages.")
     
+    # Initialize a variable to hold all text from the PDF
+    all_text = ""
+
     # Process each page of the PDF
     all_processed_pages = []
     for i in range(num_pages):
@@ -69,6 +83,10 @@ def process_pdf(pdf_file):
             'page_number': i + 1,
             'paragraphs': processed_page
         })
+
+        # Combine all text on the page
+        page_text = "\n\n".join([p['content'] for p in processed_page])
+        all_text += page_text + "\n\n"  # Add the page text to the full document text
 
     # Extract images using PyMuPDF and include descriptions
     image_descriptions = extract_images(doc)
@@ -80,6 +98,18 @@ def process_pdf(pdf_file):
     if image_descriptions:
         md_text += "\n\n## Image Descriptions\n"
         md_text += image_descriptions
+
+        # also add to text for audio audio
+        all_text += "\n\nImage Descriptions\n"
+        all_text += image_descriptions
+
+    # Generate audio for the entire document
+    full_audio_file = generate_audio(all_text, "full_document")
+
+    # Provide a button to play and download the full document audio
+    with open(full_audio_file, "rb") as audio:
+        st.audio(audio, format='audio/mp3')
+        st.download_button(label="Download Full Document Audio", data=audio, file_name=full_audio_file, mime='audio/mp3')
 
     # Return the full markdown text
     return md_text
