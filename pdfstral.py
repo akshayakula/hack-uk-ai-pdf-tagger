@@ -95,7 +95,7 @@ def process_pdf(pdf_file):
     # Extract images using PyMuPDF and include descriptions
     image_descriptions = extract_images(doc)
 
-    st.write(image_descriptions)
+    # st.write(image_descriptions)
     # Close the document
     doc.close()
 
@@ -115,7 +115,8 @@ def process_pdf(pdf_file):
     with open(full_audio_file, "rb") as audio:
         st.audio(audio, format='audio/mp3')
         unique_id = str(uuid.uuid4())
-        st.download_button(label="Download Full Document Audio", data=audio, file_name=full_audio_file, mime='audio/mp3', key=unique_id)
+        st.session_state['audio'] = audio
+        st.download_button(label="Download Full Document Audio", data=st.session_state['audio'], file_name=full_audio_file, mime='audio/mp3', key=unique_id)
 
     # Return the full markdown text
     return md_text
@@ -224,21 +225,27 @@ if uploaded_file is not None:
             with open("output.pdf", "rb") as pdf_new:
                 pdf_data = pdf_new.read()
 
+
+        
+        # Convert markdown text to bytes for download
+        markdown_bytes = markdown_text.encode('utf-8')
+        # Store pdf_bytes and markdown_bytes in session state
+        st.session_state['pdf_bytes'] = pdf_data
+        st.session_state['markdown_bytes'] = markdown_bytes
+
+        # Add a download button for the PDF
         st.download_button(
             label="Download Accessible PDF",
-            data=pdf_data,
+            data=st.session_state['pdf_bytes'],
             file_name="output.pdf",
             mime="application/pdf",
             key="download_pdf"
         )
-        
-        # Convert markdown text to bytes for download
-        markdown_bytes = markdown_text.encode('utf-8')
-        
-        # Add a download button with a simple label
+
+        # Add a download button for the Markdown
         st.download_button(
             label="Download Markdown",
-            data=markdown_bytes,
+            data=st.session_state['markdown_bytes'],
             file_name="processed_pdf_with_images.md",
             mime="text/markdown"
         )
