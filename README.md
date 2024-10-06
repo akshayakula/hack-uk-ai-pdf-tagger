@@ -1,4 +1,4 @@
-# hack-uk-ai-pdf-tagger: ["PDFstal"](https://pdfstral.streamlit.app/) ![Mistral Logo](./mistral_logo.png)
+# hack-uk-ai-pdf-tagger: ["PDFstal"](https://pdfstral.streamlit.app/) <img src="./mistral_logo.png" alt="Mistral Logo" width="100"/>
 
 ## 🌟 Intro: A Mistral AI <> a16z London Hackathon Project
 
