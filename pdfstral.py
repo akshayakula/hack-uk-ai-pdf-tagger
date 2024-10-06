@@ -6,6 +6,7 @@ import pymupdf4llm
 import pikepdf
 from gtts import gTTS
 from utils import query_pixtral, traverse_structure_ascii, extract_code_between_triple_backticks
+import uuid
 
 def visualize_pdf_structure_ascii(pdf_stream):
     """
@@ -109,7 +110,8 @@ def process_pdf(pdf_file):
     # Provide a button to play and download the full document audio
     with open(full_audio_file, "rb") as audio:
         st.audio(audio, format='audio/mp3')
-        st.download_button(label="Download Full Document Audio", data=audio, file_name=full_audio_file, mime='audio/mp3')
+        unique_id = str(uuid.uuid4())
+        st.download_button(label="Download Full Document Audio", data=audio, file_name=full_audio_file, mime='audio/mp3', key=unique_id)
 
     # Return the full markdown text
     return md_text
@@ -184,6 +186,15 @@ if uploaded_file is not None:
     st.write("Filename:", uploaded_file.name)
     
     # Button to process the PDF
+    st.markdown("""
+        <style>
+        div.stButton > button:first-child {
+            background-color: orange;
+            color: white;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+
     if st.button("Process PDF"):
         pdf_file = io.BytesIO(uploaded_file.getvalue())
         # Process the PDF and get markdown text with image descriptions
