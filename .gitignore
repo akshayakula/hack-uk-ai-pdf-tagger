@@ -13,6 +13,8 @@ wheels/
 *.jfif
 *.jfi
 
-
 # venv
 .venv
+
+# audio
+*.mp3
