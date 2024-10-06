@@ -2,22 +2,64 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import io
-import utils
 import fitz  # PyMuPDF
 import base64
-from utils import query_pixtral
 import pymupdf4llm
+import pikepdf
+from utils import query_pixtral, traverse_structure_ascii, extract_code_between_triple_backticks
+
+def visualize_pdf_structure_ascii(pdf_stream):
+    """
+    Function to extract and visualize PDF structure using pikepdf from an in-memory file (BytesIO),
+    with a call to Mistral for further analysis or summarization.
+    """
+    try:
+        # Reset the BytesIO stream position to the start
+        pdf_stream.seek(0)
+
+        # Open the PDF from BytesIO with pikepdf
+        with pikepdf.open(pdf_stream) as pdf:
+            root = pdf.Root
+            
+            # Check for StructTreeRoot, which contains the structure
+            if "/StructTreeRoot" in root:
+                struct_tree_root = root["/StructTreeRoot"]
+                print("Found structure tree root, generating structure for ...")
+                
+                # Generate ASCII structure from the PDF's structure tree
+                ascii_structure = traverse_structure_ascii(struct_tree_root, 0)
+                
+                # Send the ASCII structure to Mistral for further processing
+                mistral_response = extract_code_between_triple_backticks(query_pixtral(f"Provide just the text of an ascii tree representation of the following document structure:\n{ascii_structure}"))
+                
+                return mistral_response
+            else:
+                return "No structure tree found in the PDF."
+
+    except Exception as e:
+        return f"Error processing PDF: {str(e)}"
+
 
 def process_pdf(pdf_file):
-    # This function will be called when the button is clicked
+    # Open the PDF using PyMuPDF
     doc = fitz.open(stream=pdf_file, filetype="pdf")
+    
+    # Convert PDF content to markdown (optional)
     md_text = pymupdf4llm.to_markdown(doc)
     st.write(md_text)
-    # st.write(query_pixtral(f"Tell me sbout this PDF content that is in markdown format specificlaly the images if your able to see them: {md_text}"))
+    
+    # Convert the PDF to bytes to pass to PikePDF
+    pdf_bytes = pdf_file.getvalue()
+    
+    # Visualize PDF structure with pikepdf and Mistral API queries
+    pdf_structure_ascii = visualize_pdf_structure_ascii(io.BytesIO(pdf_bytes))
+    
+    # Display the PDF structure in ASCII format along with Mistral responses
+    st.text(pdf_structure_ascii)
+    
     num_pages = len(doc)
-    print(md_text)
     st.write(f"The PDF has {num_pages} pages.")
-
+    
     # Process each page of the PDF
     all_processed_pages = []
     for i in range(num_pages):
@@ -27,15 +69,6 @@ def process_pdf(pdf_file):
             'page_number': i + 1,
             'paragraphs': processed_page
         })
-
-    # Display the processed information
-    # st.write("Processed PDF Content:")
-    # for page in all_processed_pages:
-    #     st.subheader(f"Page {page['page_number']}")
-    #     for para in page['paragraphs']:
-    #         st.write(f"Paragraph {para['paragraph_number']} (Words: {para['word_count']}):")
-    #         st.write(para['content'])
-    #         st.write("---")
 
     # Extract images using PyMuPDF
     extract_images(doc)
@@ -88,15 +121,17 @@ def extract_images(doc):
             encoded_images.append(base64_encoded)
             st.image(image_bytes, caption=f"Image {img_index + 1} on Page {page_number + 1}", use_column_width=True)
         
+        # Use the Mistral API to describe the extracted images
         st.write(query_pixtral(f"Describe these images:", encoded_images))
 
+# Streamlit App Title
 st.title('PDFstral')
 
-# File uploader
+# File uploader for PDFs
 uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
 
 if uploaded_file is not None:
-    # Display some information about the uploaded file
+    # Display information about the uploaded file
     st.write("Filename:", uploaded_file.name)
     
     # Button to process the PDF
@@ -106,7 +141,7 @@ if uploaded_file is not None:
 else:
     st.write("Please upload a PDF file.")
 
-# Add a download button for the PDF
+# Add a sample PDF download button
 with open("pdf/Heading-Quote-and-List-not-perfect.pdf", "rb") as pdf_file:
     pdf_bytes = pdf_file.read()
 

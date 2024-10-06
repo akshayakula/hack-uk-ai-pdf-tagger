@@ -1,5 +1,9 @@
 # hack-uk-ai-pdf-tagger
 
+## Current Limitations
+
+Works for documents that have been initially, however incompletely, tagged.
+
 ## Setup Notes
 
 ### Windows
@@ -34,3 +38,14 @@ Add a .dotenv-file with a `MISTRAL_API_KEY=` entry to the repo directory.
 ```
 poetry run streamlit run pdfstral.py
 ```
+
+## Resources
+
+PDF:
+
+* https://opensource.adobe.com/dc-acrobat-sdk-docs/library/overview/Overview_Metadata.html
+
+Tools:
+
+* https://pymupdf.readthedocs.io/en/latest/pymupdf4llm/index.html
+* https://pikepdf.readthedocs.io/en/latest/topics/metadata.html
