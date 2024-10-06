@@ -206,6 +206,10 @@ def extract_images(doc):
 
     return image_descriptions
 
+# Display the banner image at the top of the app
+st.image("banner.webp", use_column_width=True)
+
+
 # Streamlit App Title
 st.title('PDFstral')
 
